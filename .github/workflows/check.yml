@@ -1,0 +1,36 @@
+name: Playtomic prüfen
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # alle 5 Minuten (GitHub kann sich verspäten)
+  workflow_dispatch:         # manuell starten zum Testen
+
+permissions:
+  contents: write
+
+concurrency:
+  group: playtomic-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Events prüfen
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python check.py
+
+      - name: Zustand speichern
+        run: |
+          git config user.name "playtomic-watcher"
+          git config user.email "watcher@users.noreply.github.com"
+          git add state.json
+          git diff --cached --quiet || git commit -m "Zustand aktualisiert"
+          git push
