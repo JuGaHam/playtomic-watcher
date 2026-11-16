@@ -2,3 +2,4 @@
 # Link in der Playtomic-App über "Teilen" kopieren oder auf playtomic.com öffnen.
 # Beispiel:
 # https://playtomic.com/de/activities/tournaments/02f73bfa-6a3d-4a1e-b78e-77af447bac2f
+https://playtomic.com/de/activities/tournaments/02f73bfa-6a3d-4a1e-b78e-77af447bac2f
