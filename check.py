@@ -83,16 +83,21 @@ def main():
     ]
     state = json.loads(STATE_FILE.read_text()) if STATE_FILE.exists() else {}
     errors = 0
+    log = []
 
     for url in urls:
         try:
-            info = parse(fetch(url))
+            html = fetch(url)
         except Exception as e:  # Netzwerkfehler etc.
             print(f"Fehler bei {url}: {e}", file=sys.stderr)
+            log.append(f"FEHLER {url}: {e}")
             errors += 1
             continue
+        info = parse(html)
         if info is None:
             print(f"Konnte Teilnehmerzahl nicht finden: {url}", file=sys.stderr)
+            snippet = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))[:300]
+            log.append(f"NICHT GEFUNDEN {url} ({len(html)} Zeichen): {snippet}")
             errors += 1
             continue
 
@@ -100,6 +105,7 @@ def main():
         free = mx - reg
         prev = state.get(url)
         print(f"{title}: {reg}/{mx} ({free} frei)")
+        log.append(f"OK {title}: {reg}/{mx} ({free} frei)")
 
         if prev is not None and reg < prev["registered"]:
             weg = prev["registered"] - reg
@@ -115,8 +121,7 @@ def main():
     state = {u: s for u, s in state.items() if u in urls}
     STATE_FILE.write_text(json.dumps(state, indent=2, ensure_ascii=False))
 
-    if errors and errors == len(urls):
-        sys.exit(1)
+    (BASE / "status.txt").write_text("\n".join(log) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
